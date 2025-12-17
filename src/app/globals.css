@@ -4,8 +4,69 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%; /* Gray 50 */
-    --foreground: 0 0% 13%; /* Gray 900 */
+    --background: 0 0% 98%;
+    /* Gray 50 */
+    --foreground: 0 0% 13%;
+    /* Gray 900 */
+
+    /* Amplify Authenticator Overrides */
+    /* Define these if not using Tailwind vars directly in CSS variables yet */
+    --primary: #6200EE;
+    --primary-light: #9c27b0;
+    --primary-dark: #3700B3;
+    --gray-600: #757575;
+  }
+
+  [data-amplify-theme] {
+    --amplify-colors-brand-primary-10: var(--primary-light);
+    --amplify-colors-brand-primary-80: var(--primary);
+    --amplify-colors-brand-primary-90: var(--primary-dark);
+    --amplify-colors-brand-primary-100: var(--primary-dark);
+    --amplify-components-button-primary-background-color: var(--primary);
+    --amplify-components-button-primary-hover-background-color: var(--primary-dark);
+    --amplify-components-button-primary-focus-background-color: var(--primary-dark);
+    --amplify-components-button-primary-active-background-color: var(--primary-dark);
+    --amplify-components-tabs-item-active-border-color: var(--primary);
+    --amplify-components-tabs-item-color: var(--gray-600);
+    --amplify-components-tabs-item-active-color: var(--primary);
+    --amplify-components-link-active-color: var(--primary);
+    --amplify-components-link-color: var(--primary);
+    --amplify-components-link-hover-color: var(--primary-dark);
+    --amplify-components-link-focus-color: var(--primary-dark);
+  }
+
+  /* Fallback/Direct overrides with high specificity */
+  body .amplify-button--primary,
+  body .amplify-button[data-variation="primary"] {
+    background-color: var(--primary) !important;
+    color: white !important;
+  }
+
+  body .amplify-button--primary:hover,
+  body .amplify-button--primary:focus,
+  body .amplify-button--primary:active,
+  body .amplify-button[data-variation="primary"]:hover {
+    background-color: var(--primary-dark) !important;
+  }
+
+  body .amplify-tabs__item[data-state="active"] {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+  }
+
+  body .amplify-tabs__item:hover {
+    color: var(--primary) !important;
+  }
+
+  body .amplify-link,
+  body .amplify-button--link {
+    color: var(--primary) !important;
+  }
+
+  /* Input focus states */
+  body .amplify-input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 1px var(--primary) !important;
   }
 
   body {
@@ -20,8 +81,8 @@
   .btn-primary {
     @apply bg-primary text-white px-6 py-2 rounded-xl shadow-elevation-2 hover:shadow-elevation-4 hover:-translate-y-0.5 transition-all duration-300 font-medium tracking-wide active:shadow-elevation-1 active:translate-y-0;
   }
-  
+
   .card {
-     @apply bg-surface rounded-2xl p-6 shadow-elevation-1 hover:shadow-elevation-3 transition-shadow duration-300 border border-gray-100;
+    @apply bg-surface rounded-2xl p-6 shadow-elevation-1 hover:shadow-elevation-3 transition-shadow duration-300 border border-gray-100;
   }
 }

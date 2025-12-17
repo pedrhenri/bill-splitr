@@ -236,7 +236,18 @@ function Dashboard({ signOut, user }: { signOut: ((data?: any) => void) | undefi
 
 export default function Home() {
     return (
-        <Authenticator>
+        <Authenticator
+            components={{
+                Header: () => (
+                    <div className="text-center mt-8 mb-4">
+                        <span className="text-3xl font-black text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-light">
+                            Bill Splitr
+                        </span>
+                        <p className="text-gray-500 mt-2 text-sm">Sign in to manage your shared expenses.</p>
+                    </div>
+                )
+            }}
+        >
             {({ signOut, user }) => (
                 <Dashboard signOut={signOut} user={user} />
             )}
