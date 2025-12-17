@@ -381,7 +381,7 @@ export default function GroupPage() {
             <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
                 <div className="max-w-6xl mx-auto">
                     <button
-                        onClick={() => router.push('/')}
+                        onClick={() => router.push('/dashboard')}
                         className="mb-8 text-sm font-medium text-gray-500 hover:text-primary transition-colors flex items-center gap-1"
                     >
                         &larr; Back to Dashboard
