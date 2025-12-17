@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%; /* Gray 50 */
+    --foreground: 0 0% 13%; /* Gray 900 */
+  }
+
+  body {
+    background-color: theme('colors.gray.50');
+    color: theme('colors.gray.900');
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Material Design Utilities */
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white px-6 py-2 rounded-xl shadow-elevation-2 hover:shadow-elevation-4 hover:-translate-y-0.5 transition-all duration-300 font-medium tracking-wide active:shadow-elevation-1 active:translate-y-0;
+  }
+  
+  .card {
+     @apply bg-surface rounded-2xl p-6 shadow-elevation-1 hover:shadow-elevation-3 transition-shadow duration-300 border border-gray-100;
+  }
+}
