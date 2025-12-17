@@ -26,6 +26,23 @@ export default function ExpenseModal({ isOpen, onClose, onSubmit, members, initi
     const [payerId, setPayerId] = useState("");
     const [involvedIds, setInvolvedIds] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [availableMembers, setAvailableMembers] = useState<Member[]>([]);
+
+    useEffect(() => {
+        // Smart Filtering: Show Active Members + Members relevant to this historic expense
+        const activeMembers = members.filter(m => m.isActive !== false);
+
+        if (initialData) {
+            const historicIds = new Set([initialData.payerId, ...(initialData.involvedMemberIds || [])]);
+            const historicMembers = members.filter(m => m.isActive === false && historicIds.has(m.id));
+
+            // Combine and sort
+            const combined = [...activeMembers, ...historicMembers].sort((a, b) => a.name.localeCompare(b.name));
+            setAvailableMembers(combined);
+        } else {
+            setAvailableMembers(activeMembers);
+        }
+    }, [members, initialData]);
 
     // Reset or Populate form when opening
     useEffect(() => {
@@ -38,10 +55,13 @@ export default function ExpenseModal({ isOpen, onClose, onSubmit, members, initi
             } else {
                 setDescription("");
                 setAmount("");
-                // Default payer to first member if exists
-                if (members.length > 0) setPayerId(members[0].id);
-                // Default involved to ALL members
-                setInvolvedIds(members.map(m => m.id));
+                // Default payer to first AVAILABLE member if exists
+                // We need to calc available members here immediately or rely on the effect above?
+                // The effect above runs after render. Let's calculate purely for defaults here using same logic or wait?
+                // Better to calculate "default list" just for this initial set:
+                const activeMembers = members.filter(m => m.isActive !== false);
+                if (activeMembers.length > 0) setPayerId(activeMembers[0].id);
+                setInvolvedIds(activeMembers.map(m => m.id));
             }
         }
     }, [isOpen, initialData, members]);
@@ -82,10 +102,10 @@ export default function ExpenseModal({ isOpen, onClose, onSubmit, members, initi
     };
 
     const toggleAll = () => {
-        if (involvedIds.length === members.length) {
+        if (involvedIds.length === availableMembers.length) {
             setInvolvedIds([]);
         } else {
-            setInvolvedIds(members.map(m => m.id));
+            setInvolvedIds(availableMembers.map(m => m.id));
         }
     };
 
@@ -138,8 +158,10 @@ export default function ExpenseModal({ isOpen, onClose, onSubmit, members, initi
                             onChange={e => setPayerId(e.target.value)}
                             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all bg-white"
                         >
-                            {members.map(m => (
-                                <option key={m.id} value={m.id}>{m.name}</option>
+                            {availableMembers.map(m => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name} {m.isActive === false ? "(Archived)" : ""}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -153,19 +175,21 @@ export default function ExpenseModal({ isOpen, onClose, onSubmit, members, initi
                                 onClick={toggleAll}
                                 className="text-xs text-primary hover:underline font-medium"
                             >
-                                {involvedIds.length === members.length ? "Deselect All" : "Select All"}
+                                {involvedIds.length === availableMembers.length ? "Deselect All" : "Select All"}
                             </button>
                         </div>
                         <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
-                            {members.map(m => (
-                                <label key={m.id} className="flex items-center gap-2 p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+                            {availableMembers.map(m => (
+                                <label key={m.id} className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${m.isActive === false ? 'bg-gray-50 border-gray-200' : 'border-gray-200 hover:bg-gray-50'}`}>
                                     <input
                                         type="checkbox"
                                         checked={involvedIds.includes(m.id)}
                                         onChange={() => toggleMember(m.id)}
                                         className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
                                     />
-                                    <span className="text-sm text-gray-700 truncate">{m.name}</span>
+                                    <span className={`text-sm truncate ${m.isActive === false ? 'text-gray-500 italic' : 'text-gray-700'}`}>
+                                        {m.name} {m.isActive === false && "(Archived)"}
+                                    </span>
                                 </label>
                             ))}
                         </div>
