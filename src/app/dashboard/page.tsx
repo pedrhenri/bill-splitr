@@ -3,14 +3,31 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import { useEffect, useState } from "react";
 import { client } from "@/client";
 import type { Schema } from "@amplify/data/resource";
-import { signOut } from "aws-amplify/auth"; // Import direct signOut if needed, but prop is passed
+import { signOut } from "aws-amplify/auth";
 import "@aws-amplify/ui-react/styles.css";
 import GroupModal from "@/components/GroupModal";
 import ConfirmModal from "@/components/ConfirmModal";
 import { useToast } from "@/components/ToastProvider";
-
-// Icons (Simple SVGs for elegance)
 import Spinner from "@/components/Spinner";
+
+const authenticatorStyles = `
+  .amplify-button--primary,
+  .amplify-button[data-variation="primary"] {
+    background-color: #6200EE !important;
+    color: white !important;
+  }
+  .amplify-button--primary:hover,
+  .amplify-button[data-variation="primary"]:hover {
+    background-color: #3700B3 !important;
+  }
+  .amplify-tabs__item[data-state="active"] {
+    border-color: #6200EE !important;
+    color: #6200EE !important;
+  }
+  .amplify-link {
+    color: #6200EE !important;
+  }
+`;
 
 // Icons (Simple SVGs for elegance)
 const PlusIcon = () => (
@@ -236,21 +253,24 @@ function Dashboard({ signOut, user }: { signOut: ((data?: any) => void) | undefi
 
 export default function Home() {
     return (
-        <Authenticator
-            components={{
-                Header: () => (
-                    <div className="text-center mt-8 mb-4">
-                        <span className="text-3xl font-black text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-light">
-                            Bill Splitr
-                        </span>
-                        <p className="text-gray-500 mt-2 text-sm">Sign in to manage your shared expenses.</p>
-                    </div>
-                )
-            }}
-        >
-            {({ signOut, user }) => (
-                <Dashboard signOut={signOut} user={user} />
-            )}
-        </Authenticator>
+        <>
+            <style>{authenticatorStyles}</style>
+            <Authenticator
+                components={{
+                    Header: () => (
+                        <div className="text-center mt-8 mb-4">
+                            <span className="text-3xl font-black text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-light">
+                                Bill Splitr
+                            </span>
+                            <p className="text-gray-500 mt-2 text-sm">Sign in to manage your shared expenses.</p>
+                        </div>
+                    )
+                }}
+            >
+                {({ signOut, user }) => (
+                    <Dashboard signOut={signOut} user={user} />
+                )}
+            </Authenticator>
+        </>
     )
 }
