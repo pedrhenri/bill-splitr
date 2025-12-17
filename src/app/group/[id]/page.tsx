@@ -11,6 +11,7 @@ import InputModal from "@/components/InputModal";
 import ExpenseSelectionModal from "@/components/ExpenseSelectionModal";
 import { useToast } from "@/components/ToastProvider"; // Custom hook
 import "@aws-amplify/ui-react/styles.css";
+import Spinner from "@/components/Spinner";
 
 // Icons 
 const PlusIcon = () => (
@@ -31,13 +32,7 @@ const PencilIcon = () => (
     </svg>
 );
 
-// Loading Spinner
-const Spinner = () => (
-    <svg className="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-);
+
 
 export default function GroupPage() {
     const params = useParams();
@@ -107,41 +102,41 @@ export default function GroupPage() {
         }
     }, [id]);
 
-    const deleteMember = async (memberId: string) => {
-        // 1. Safety Check: Is payer?
-        const isPayer = expenses.some(e => e.payerId === memberId);
-        if (isPayer) {
-            toast.error("Cannot delete member who has paid for expenses. Please reassign or delete their expenses first.");
+    const archiveMember = async (memberId: string) => {
+        // 1. Calculate Balance
+        // We need the *latest* calculation.
+        // `settlements` (the useMemo one) contains all transactions including pending ones.
+        // We need to find the specific member's net balance.
+
+        // Let's re-run calculation on the fly to be safe or inspect the `settlements` array?
+        // Actually, the `settlements` array (calculated in useMemo) shows what IS pending.
+        // If a member appears in `settlements` (either as from or to) where `isPaid` is false, they have a balance.
+
+        const pendingSettlements = settlements.filter(s => !s.isPaid && (s.from === members.find(m => m.id === memberId)?.name || s.to === members.find(m => m.id === memberId)?.name));
+
+        if (pendingSettlements.length > 0) {
+            toast.error("Member has outstanding balance. Settle up before removing.");
             return;
         }
 
         setConfirmModalState({
             isOpen: true,
-            title: "Delete Member?",
-            message: "Are you sure you want to delete this member? This action cannot be undone.",
+            title: "Archive Member?",
+            message: "Are you sure you want to remove this member? They will be hidden from lists but their history will be preserved.",
             isDestructive: true,
             onConfirm: async () => {
                 // Optimistic Update
                 const prevMembers = [...members];
-                setMembers(prev => prev.filter(m => m.id !== memberId));
+                // We don't remove from state, we update isActive. But since we filter on render, update state to refelct that.
+                setMembers(prev => prev.map(m => m.id === memberId ? { ...m, isActive: false } : m));
 
                 try {
-                    // 2. Cleanup: Remove from involvedMemberIds in all expenses
-                    const involvedExpenses = expenses.filter(e => e.involvedMemberIds?.includes(memberId));
-                    await Promise.all(involvedExpenses.map(async (e) => {
-                        const cleanInvolved = (e.involvedMemberIds || []).filter((id): id is string => id !== null && id !== memberId);
-                        await client.models.Expense.update({
-                            id: e.id,
-                            involvedMemberIds: cleanInvolved
-                        });
-                    }));
-
-                    // 3. Delete Member
-                    await client.models.Member.delete({ id: memberId });
-                    toast.success("Member deleted");
+                    // 2. Soft Delete
+                    await client.models.Member.update({ id: memberId, isActive: false });
+                    toast.success("Member archived");
                 } catch (err) {
                     console.error(err);
-                    toast.error("Failed to delete member");
+                    toast.error("Failed to archive member");
                     setMembers(prevMembers); // Revert
                 }
             }
@@ -160,7 +155,10 @@ export default function GroupPage() {
                     const { data: newMember } = await client.models.Member.create({ name, groupId: id });
 
                     if (newMember) {
-                        setMembers(prev => [...prev, newMember]);
+                        setMembers(prev => {
+                            if (prev.some(m => m.id === newMember.id)) return prev;
+                            return [...prev, newMember];
+                        });
                         toast.success("Member added! Select expenses to join.");
 
                         // 2. Trigger Selection Modal
@@ -364,7 +362,11 @@ export default function GroupPage() {
         return [...pendingDebts, ...paidHistory];
     }, [expenses, members, settlementsData]);
 
-    if (!group) return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading...</div>;
+    if (!group) return (
+        <div className="min-h-screen flex items-center justify-center">
+            <Spinner className="h-10 w-10 text-primary" />
+        </div>
+    );
 
     const modalInitialData = editingExpense ? {
         id: editingExpense.id,
@@ -406,7 +408,7 @@ export default function GroupPage() {
                                     </button>
                                 </div>
                                 <ul className="space-y-3">
-                                    {members.map(m => (
+                                    {members.filter(m => m.isActive !== false).map(m => (
                                         <li key={m.id} className="group flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white font-bold shadow-sm">
@@ -415,7 +417,7 @@ export default function GroupPage() {
                                                 <span className="font-medium text-gray-700">{m.name}</span>
                                             </div>
                                             <button
-                                                onClick={() => deleteMember(m.id)}
+                                                onClick={() => archiveMember(m.id)}
                                                 className="lg:opacity-0 group-hover:opacity-100 text-gray-400 hover:text-error transition-all p-2 rounded-md"
                                                 title="Remove Member"
                                             >

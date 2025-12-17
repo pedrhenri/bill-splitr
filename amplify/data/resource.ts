@@ -19,6 +19,7 @@ const schema = a.schema({
       name: a.string().required(),
       groupId: a.id().required(),
       group: a.belongsTo('Group', 'groupId'),
+      isActive: a.boolean(),
     })
     .authorization((allow) => [allow.authenticated()]),
 
