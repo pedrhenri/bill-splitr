@@ -12,7 +12,7 @@ const schema = a.schema({
       expenses: a.hasMany('Expense', 'groupId'),
       settlements: a.hasMany('Settlement', 'groupId'),
     })
-    .authorization((allow) => [allow.authenticated()]),
+    .authorization((allow) => [allow.owner()]),
 
   Member: a
     .model({
@@ -21,7 +21,7 @@ const schema = a.schema({
       group: a.belongsTo('Group', 'groupId'),
       isActive: a.boolean(),
     })
-    .authorization((allow) => [allow.authenticated()]),
+    .authorization((allow) => [allow.owner()]),
 
   Expense: a
     .model({
@@ -32,7 +32,7 @@ const schema = a.schema({
       groupId: a.id().required(),
       group: a.belongsTo('Group', 'groupId'),
     })
-    .authorization((allow) => [allow.authenticated()]),
+    .authorization((allow) => [allow.owner()]),
 
   Settlement: a
     .model({
@@ -42,7 +42,7 @@ const schema = a.schema({
       groupId: a.id().required(),
       group: a.belongsTo('Group', 'groupId'),
     })
-    .authorization((allow) => [allow.authenticated()]),
+    .authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

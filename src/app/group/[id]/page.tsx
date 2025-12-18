@@ -44,6 +44,7 @@ export default function GroupPage() {
     const [members, setMembers] = useState<Array<Schema["Member"]["type"]>>([]);
     const [expenses, setExpenses] = useState<Array<Schema["Expense"]["type"]>>([]);
     const [settlementsData, setSettlementsData] = useState<Array<Schema["Settlement"]["type"]>>([]);
+    const [notFound, setNotFound] = useState(false);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -76,8 +77,12 @@ export default function GroupPage() {
         if (!id) return;
 
         client.models.Group.get({ id }).then(data => {
-            if (data.data) setGroup(data.data);
-        });
+            if (data.data) {
+                setGroup(data.data);
+            } else {
+                setNotFound(true);
+            }
+        }).catch(() => setNotFound(true));
 
         const subMembers = client.models.Member.observeQuery({
             filter: { groupId: { eq: id } }
@@ -361,6 +366,19 @@ export default function GroupPage() {
         // Maybe show Pending first, then History?
         return [...pendingDebts, ...paidHistory];
     }, [expenses, members, settlementsData]);
+
+    if (notFound) return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Group Not Found</h1>
+            <p className="text-gray-500 mb-6">You might not have permission to view this group.</p>
+            <button
+                onClick={() => router.push('/dashboard')}
+                className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+            >
+                Back to Dashboard
+            </button>
+        </div>
+    );
 
     if (!group) return (
         <div className="min-h-screen flex items-center justify-center">
