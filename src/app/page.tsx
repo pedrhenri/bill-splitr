@@ -23,9 +23,9 @@ export default function LandingPage() {
             </span>
           </div>
           <nav className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">
+            {/* <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">
               Sign In
-            </Link>
+            </Link> */}
             <Link
               href="/dashboard"
               className="px-5 py-2.5 text-sm font-bold text-white bg-primary rounded-full hover:bg-primary-dark transition-all transform hover:scale-105 shadow-lg shadow-primary/20"
@@ -114,6 +114,14 @@ export default function LandingPage() {
               <p className="mt-4">
                 Bill Splitr is the <strong>best free app to split bills</strong> online. We ensure everyone pays their fair share with transparent expense tracking and automatic debt calculation. No more "I'll Venmo you later" without a record.
               </p>
+              <div className="mt-10 not-prose">
+                <Link
+                  href="/dashboard"
+                  className="inline-block px-8 py-4 text-lg font-bold text-white bg-primary rounded-xl hover:bg-primary-dark transition-all shadow-xl shadow-primary/30"
+                >
+                  Start Splitting Now
+                </Link>
+              </div>
             </div>
           </div>
         </section>
